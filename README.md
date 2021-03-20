@@ -7,56 +7,108 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+# Instrucciones de Instalación
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Este documento describe los pasos necesarios para configurar el entorno de desarrollo en la PC local bajo sistemas operativos Linux utilizando Docker.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Pre instalación del Proyecto.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* Tener instalado Git.
+* Tener instalado Composer.
+* Tener instalado php-client php-mbstring.
 
-## Learning Laravel
+### Clonar Repositorio de GitHub.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Realizar la instalación de composer en el proyecto.
+```
+https://getcomposer.org/download/
+```
+```
+php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+php -r "if (hash_file('SHA384', 'composer-setup.php') === '544e09ee996cdf60ece3804abc52599c22b1f40f4323403c44d44fdfdd586475ca9813a858088ffbc1f233e9b180f061') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+```
+PD: Tener en cuenta que el hash de arriba siempre se actualiza por lo que es mejor entrar a la página de composer.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### Copiamos el `composer.phar` de instalación que nos proveen los comandos anteriores en la carpeta raíz del proyecto (`sportivo/`)
 
-## Laravel Sponsors
+### Instalación de los contenedores de Docker.
+* Primeramente tener `docker` y `docker-compose` instalados (utilizar las guías de Digital Ocean estan bien documentadas).
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+1. Entrar a la carpeta de docker del proyecto. (`DSI2021-TP2/docker`)
 
-### Premium Partners
+2. Realizar un `docker-compose pull`
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/)**
-- **[OP.GG](https://op.gg)**
+3. Realizar un `docker-compose up` (Al realizar este comando en un momento queda clavado el proceso porque ya termino, debemos cancelarlo al proceso con `Ctrl + C`)
 
-## Contributing
+4. Encender los contenedores con `docker-compose start`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+5. Listo ya se encuentra levantado el servidor y la base de datos (MySQL).
 
-## Code of Conduct
+### Asignación de los permisos de Laravel.
+Es necesario para la correcta visualización y funcionamiento del proyecto que se asignen los siguientes permisos en la carpeta raíz del proyecto (`sportivo/`):
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
+    sudo chown -R 1000:33 storage/
+    sudo chmod -R g+w storage/
+    sudo chown -R 1000:33 bootstrap/cache
+    sudo chmod -R g+w bootstrap/cache
+```
 
-## Security Vulnerabilities
+PD: Puede suceder que en momentos al crearse archivos de Logs nuevos tengamos que reasignar los permisos al storage/ (ver como solucionar esto, muchas veces al terminar la instalación del proyecto necesitamos asignar de nuevo estos permisos).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Instalación de las dependencias.
+1. Nos ubicamos en la carpeta de docker del proyecto (`docker`)
 
-## License
+2. Acceder al Lord Commander (Ricky Fort) ejecutando `./webapp` (basicamente es nuestro bash de nginx `docker-compose run --user=1000 phpnginx bash`)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+3. Ejecutamos `./composer.phar install`
+
+4. Esperar la instalación de dependencias de Laravel y compañía.
+
+### Crear archivo de Enviroment
+1. Crear un archivo ```.env```
+2. Copiar lo que existe en el ```.env.example```
+3. Podemos hacerlo automáticamente con el comando ```cp .env.example .env```
+4. Este archivo contiene las credenciales de las cuentas de los servicios utilizados.
+
+### Configuración de la Base de Datos.
+1. Instalar mysql-client
+
+2. Ejecutamos `docker exec -it doclacade_mysql_1 bash` (con esto ingresamos a mysql del docker)
+
+4. Ejecutamos `mysql -uroot -psecret`
+
+5. Creamos la BD: `create database sportivo;`
+
+6. Verificamos la creación de la misma con: `show databases;`
+
+7. Salimos si la creamos con éxito.
+
+### Ejecución de las migraciones (Laravel)
+0. Primeramente actualizar el archivo `.env` con los datos correspondientes de la BD:
+
+```
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=tp2
+DB_USERNAME=test
+DB_PASSWORD=test
+```
+
+1. Entramos al `bash nginx` del Lord Commander ubicados en `DS12021-TP2/docker` ejecutar: `./webapp`.
+
+2. Ejecutamos dentro del bash `php artisan migrate`
+
+3. Una vez terminada la ejecución ya tendremos las tablas correspondientes en nuestra base de datos `tp2`.
+
+4. Ejecutar para tener el `.env` completo y correcto `php artisan key:generate`.
+
+5. Listo ya podemos salir del comandante.
+
+### Ultimos pasos.
+1. Ya podemos entrar al sitio `localhost`
+
+2. Deberíamos visualizar correctamente el sitio de bienvenida (O algun Health Check en el caso de ser API).
