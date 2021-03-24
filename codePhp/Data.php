@@ -5,7 +5,13 @@ class data{
     private $inscriptions;
     private $participants;
 
-    //falta aqui
+    public function getSeedData(){
+        //no se donde poner el array como lo indica el diagrama
+    }
+
+    public function makeInscription(participant){
+
+    }
 }
 
 ?>

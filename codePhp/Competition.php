@@ -5,9 +5,18 @@ class competition{
     private $competitionDate;
     private $incriptionLimitDate;
     private $location;
-    private $distante;
+    private $distance;
 
-    //falta algo aqui 
-}
+     public function getCompetitionData(){
+
+     }
+
+     public function setPodiumTimes(){
+
+     }
+
+     public function getFinalSeassonPodiumTimes(){
+         
+     }
 
 ?>

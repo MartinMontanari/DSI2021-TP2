@@ -6,7 +6,25 @@ class inscription{
     private $participanId;
     private $competitionId;
 
-    //falta aqui 
+    public function getBestParticipantTime(){
+
+    } 
+
+    public function getInscriptionStatus(){
+
+    }
+
+    public function getPodium(){
+
+    }
+
+    public function setPodium(){
+
+    }
+
+    public function getPodiumTimes(){
+        
+    }
 }
 
 ?>
