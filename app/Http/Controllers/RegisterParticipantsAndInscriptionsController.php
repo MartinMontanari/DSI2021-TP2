@@ -16,15 +16,27 @@ class RegisterParticipantsAndInscriptionsController extends Controller
      */
     public function __invoke(SeederData $data)
     {
+        //Seed database.
         $this->createCompetitions($data->getCompetitions());
         $this->createParticipant($data->getParticipants());
-        $this->createInscriptions();
+
+        //Init params
+        $competitions = Competition::all();
+        $participants = Participant::all();
+
+        $this->createInscriptions($competitions, $participants);
+        $inscriptions = Inscription::all();
+
+        $this->setPodiumTimesPerCompetition($competitions, $inscriptions);
+//        $this->calculateFinalPodium($inscriptions);
     }
 
-    public function createCompetitions($data) : void
+    /**
+     * @param array $data
+     */
+    private function createCompetitions(array $data): void
     {
-        foreach ($data as $item)
-        {
+        foreach ($data as $item) {
             $competition = new Competition();
 
             $competition->setName($item['name']);
@@ -37,10 +49,12 @@ class RegisterParticipantsAndInscriptionsController extends Controller
         }
     }
 
-    public function createParticipant($data) : void
+    /**
+     * @param array $data
+     */
+    private function createParticipant(array $data): void
     {
-        foreach ($data as $item)
-        {
+        foreach ($data as $item) {
             $participant = new Participant();
 
             $participant->setFullName($item['fullName']);
@@ -53,28 +67,45 @@ class RegisterParticipantsAndInscriptionsController extends Controller
         }
     }
 
-    public function createInscriptions() : void
+    /**
+     * @param $competitions
+     * @param $participants
+     */
+    private function createInscriptions($competitions, $participants): void
     {
-        $competitions = Competition::all();
-        $participants = Participant::all();
-
-        foreach ($competitions as $competition)
-        {
-            $inscription = new Inscription();
-            $inscription->setCompetitionId($competition->getId());
-            foreach ($participants as $participant)
-            {
+        foreach ($competitions as $competition) {
+            for ($item = 0; $item < count($participants); $item++) {
+                $inscription = new Inscription();
+                $inscription->setCompetitionId($competition->getId());
+                $participant = Participant::query()->where('id', '=', rand(1, 7))->get()->first();
                 $inscription->setParticipantId($participant->getId());
                 $inscription->setStatus(InscriptionStatus::PARTICIPATED);
                 $inscription->save();
-//                TODO terminar relaciones
             }
         }
-
-
     }
 
 //    TODO calcular los podios por competencia
+    private function setPodiumTimesPerCompetition($competitions, $inscriptions): void
+    {
+        foreach ($inscriptions as $inscription) {
+            $time = explode(' ', strftime(now() . time()));
+            $inscription->setTime($time[1]);
+            $inscription->save();
+        }
+
+        foreach ($competitions as $competition) {
+            $first = 0;
+            $second = 0;
+            $third= 0;
+            for ($item = 0; $item < count($inscriptions); $item++) {
+                if ($inscriptions[$item]->getCompetitionId() == $competition->getId()) {
+                    //TODO terminar de evaluar.
+                }
+            }
+        }
+
+    }
 
 //    TODO terminar con el podio final
     public function getFinalSeasonPodiumsAndTimes()

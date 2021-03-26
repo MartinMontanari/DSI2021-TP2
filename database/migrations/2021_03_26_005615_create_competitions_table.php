@@ -20,6 +20,7 @@ class CreateCompetitionsTable extends Migration
             $table->string('inscription_limit_date');
             $table->string('location');
             $table->unsignedInteger('distance');
+            $table->json('podium_times')->nullable();
             $table->timestamps();
         });
     }

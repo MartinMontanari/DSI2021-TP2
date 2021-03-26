@@ -115,9 +115,9 @@ class Competition extends Model
     /**
      * @return array
      */
-    public function getPodiumTimes(): array
+    public function getPodiumTimes():array
     {
-        return $this->podium_times;
+        return json_decode($this->podium_times);
     }
 
     /**
@@ -125,6 +125,6 @@ class Competition extends Model
      */
     public function setPodiumTimes(array $podiumTimes): void
     {
-        $this->podium_times = $podiumTimes;
+        $this->podium_times = json_encode($podiumTimes);
     }
 }
