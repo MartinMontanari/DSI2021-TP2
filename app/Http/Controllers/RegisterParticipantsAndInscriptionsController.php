@@ -28,7 +28,7 @@ class RegisterParticipantsAndInscriptionsController extends Controller
         $inscriptions = Inscription::all();
 
         $this->setPodiumTimesPerCompetition($competitions, $inscriptions);
-//        $this->calculateFinalPodium($inscriptions);
+        $this->getFinalSeasonPodiumsAndTimes($inscriptions);
     }
 
     /**
@@ -108,8 +108,8 @@ class RegisterParticipantsAndInscriptionsController extends Controller
     }
 
 //    TODO terminar con el podio final
-    public function getFinalSeasonPodiumsAndTimes()
+    public function getFinalSeasonPodiumsAndTimes(array $inscriptions) : array
     {
-
+        //TODO finish with UC handle and return podium array
     }
 }
