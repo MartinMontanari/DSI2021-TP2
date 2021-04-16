@@ -25,11 +25,12 @@ class MakeNewBudgetController extends Controller
             $materialId = $request->input('materialId');
 
             if(is_null($materialId)){
-                throw new \InvalidArgumentException('El cliente ingresado es incorrecto.', 400);
+                throw new \InvalidArgumentException('El material de construcción ingresado es incorrecto.', 400);
             }
-            $material = $this->findMaterialByIdOrFail($materialId);
 
-            $createdBudget = $this->createBudget($customer, $layerThickness, $material);
+            $buildingMaterial = $this->findMaterialByIdOrFail($materialId);
+
+            $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterial);
 
         } catch (\InvalidArgumentException $error) {
             return redirect()->back()->withErrors($error->getMessage());
@@ -69,14 +70,16 @@ class MakeNewBudgetController extends Controller
     /**
      * @param Customer $customer
      * @param int $layerThickness
+     * @param BuildingMaterial $buildingMaterial
      * @return Budget
      */
-    private function createBudget(Customer $customer, int $layerThickness): Budget
+    private function createBudget(Customer $customer, int $layerThickness, BuildingMaterial $buildingMaterial): Budget
     {
         $budget = new Budget();
 
         $budget->setCustomer($customer);
         $budget->setLayerThickness($layerThickness);
+        $budget->setBag($buildingMaterial->getBag());
 
     }
 }
