@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bag;
 use App\Models\Budget;
 use App\Models\BuildingMaterial;
 use App\Models\Customer;
@@ -28,9 +29,10 @@ class MakeNewBudgetController extends Controller
                 throw new \InvalidArgumentException('El material de construcción ingresado es incorrecto.', 400);
             }
 
-            $buildingMaterial = $this->findMaterialByIdOrFail($materialId);
+            $buildingMaterialBag = $this->findMaterialBagByBuildingMaterialIdOrFail($materialId);
 
-            $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterial);
+
+            $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterialBag);
 
         } catch (\InvalidArgumentException $error) {
             return redirect()->back()->withErrors($error->getMessage());
@@ -56,12 +58,12 @@ class MakeNewBudgetController extends Controller
      * @param int $materialId
      * @return BuildingMaterial|null
      */
-    private function findMaterialByIdOrFail(int $materialId): ?BuildingMaterial
+    private function findMaterialBagByBuildingMaterialIdOrFail(int $materialId): ?Bag
     {
-        $query = BuildingMaterial::query()->where('id', '=', $materialId)->get()->first();
+        $query = Bag::query()->where('building_material_id', '=', $materialId)->get()->first();
 
         if (!isset($query)) {
-            throw new \RuntimeException('El cliente no existe.', 404);
+            throw new \RuntimeException('La bolsa de aislante no existe.', 404);
         }
 
         return $query;
@@ -70,16 +72,17 @@ class MakeNewBudgetController extends Controller
     /**
      * @param Customer $customer
      * @param int $layerThickness
-     * @param BuildingMaterial $buildingMaterial
+     * @param Bag $buildingMaterialBag
      * @return Budget
      */
-    private function createBudget(Customer $customer, int $layerThickness, BuildingMaterial $buildingMaterial): Budget
+    private function createBudget(Customer $customer, int $layerThickness, Bag $buildingMaterialBag): Budget
     {
         $budget = new Budget();
 
         $budget->setCustomer($customer);
         $budget->setLayerThickness($layerThickness);
-        $budget->setBag($buildingMaterial->getBag());
-
+        $budget->setBag($buildingMaterialBag);
+        $budget->set
+        //TODO terminar ésto.
     }
 }

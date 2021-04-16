@@ -66,7 +66,7 @@ class Bag extends Model
      */
     public function getBuildingMaterial(): ?BuildingMaterial
     {
-        return $this->buildingMaterial;
+        return $this->building_material_id;
     }
 
     /**
