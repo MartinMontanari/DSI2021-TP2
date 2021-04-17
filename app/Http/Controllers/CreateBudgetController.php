@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Exceptions\UnprocessableEntityException;
 use App\Models\Bag;
 use App\Models\Budget;
 use App\Models\BuildingMaterial;
 use App\Models\Customer;
-use http\Exception\InvalidArgumentException;
 use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -25,7 +25,7 @@ class CreateBudgetController
             $layerThickness = $request->input('layerThickness');
             $insulatingMaterialId = $request->input('insulatingMaterialId');
             $areaToCover = $request->input('areaToCover');
-        } catch (\InvalidArgumentException $error) {
+        } catch (UnprocessableEntityException $error) {
             return redirect()->back()->withErrors($error->getMessage());
         }
 
@@ -36,17 +36,22 @@ class CreateBudgetController
 
             return view('budget.index',['createdBudget' => $createdBudget]);
 
-        } catch (\RuntimeException $error) {
+        } catch (RuntimeException $error) {
             return redirect()->back()->withErrors($error->getMessage());
         }
     }
 
+    /**
+     * Function to adapt request parameters to handle use case
+     * @param Request $request
+     * @throws UnprocessableEntityException
+     */
     private function requestAdapter(Request $request)
     {
         $validate = Validator::make($request->all(), self::RULES, self::MESSAGES);
 
         if ($validate->fails()) {
-            throw new InvalidArgumentException($validate->errors()->getMessages());
+            throw new UnprocessableEntityException($validate->errors()->getMessages(),422);
         }
     }
 
