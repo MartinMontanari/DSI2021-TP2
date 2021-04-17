@@ -15,8 +15,8 @@ class CreateBuildingMaterialsTable extends Migration
     {
         Schema::create('building_materials', function (Blueprint $table) {
             $table->id();
-            $table->string('material_type')->nullable()->default('set null');
-            $table->float('unit_price')->nullable()->default('set null');
+            $table->string('material_type')->nullable();
+            $table->float('unit_price')->nullable();
             $table->timestamps();
         });
     }

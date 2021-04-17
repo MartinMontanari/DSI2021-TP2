@@ -15,8 +15,8 @@ class CreateBagsTable extends Migration
     {
         Schema::create('bags', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('max_load_capacity')->nullable()->default('set null');
-            $table->string('weight_unit_type')->nullable()->default('set null');
+            $table->unsignedBigInteger('max_load_capacity')->nullable();
+            $table->string('weight_unit_type')->nullable();
             $table->unsignedBigInteger('building_material_id');
             $table->timestamps();
         });

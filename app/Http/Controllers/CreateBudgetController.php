@@ -6,6 +6,8 @@ use App\Models\Bag;
 use App\Models\Budget;
 use App\Models\BuildingMaterial;
 use App\Models\Customer;
+use http\Exception\InvalidArgumentException;
+use http\Exception\RuntimeException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -44,7 +46,7 @@ class CreateBudgetController
         $validate = Validator::make($request->all(), self::RULES, self::MESSAGES);
 
         if ($validate->fails()) {
-            throw new \InvalidArgumentException($validate->errors()->getMessages());
+            throw new InvalidArgumentException($validate->errors()->getMessages());
         }
     }
 
@@ -69,6 +71,11 @@ class CreateBudgetController
         'areaToCover.min' => 'El área a cubrir ingresada es incorrecta, la superficie debe ser de 4,5 metros cuadrados como mínimo.'
     ];
 
+    /**
+     * Query to find a Customer by Id
+     * @param int $customerId
+     * @return Customer|null
+     */
     private function findCustomerByIdOrFail(int $customerId): ?Customer
     {
         $query = Customer::query()->where('id', '=', $customerId)->get()->first();
@@ -80,17 +87,30 @@ class CreateBudgetController
         return $query;
     }
 
+    /**
+     * Query to find a Bag with a building material like parameter
+     * @param int $materialId
+     * @return Bag|null
+     */
     private function findBagByBuildingMaterialIdOrFail(int $materialId): ?Bag
     {
         $query = Bag::query()->where('building_material_id', '=', $materialId)->get()->first();
 
         if (!isset($query)) {
-            throw new \RuntimeException('La bolsa de aislante no existe.', 404);
+            throw new RuntimeException('La bolsa de aislante no existe.', 404);
         }
 
         return $query;
     }
 
+    /**
+     * Function to create a Budget object, handle use case and persist the budget created.
+     * @param Customer $customer
+     * @param int $layerThickness
+     * @param Bag $buildingMaterialBag
+     * @param float $areaToCover
+     * @return Budget
+     */
     private function createBudget(Customer $customer, int $layerThickness, Bag $buildingMaterialBag, float $areaToCover): Budget
     {
         $budget = new Budget();
@@ -102,7 +122,7 @@ class CreateBudgetController
         $budgetPrice = $this->makeBudgetPriceCalculation($layerThickness, $buildingMaterialBag->getBuildingMaterial(), $areaToCover);
         $budget->setPrice($budgetPrice);
 
-        $budgetBagsQuantity = $this->makeBudgetBagsQuantityCalculation($areaToCover, $layerThickness, $buildingMaterialBag);
+        $budgetBagsQuantity = $this->makeBudgetBagsQuantityCalculation($areaToCover, $layerThickness);
         $budget->setTotallyBagsQuantity($budgetBagsQuantity);
 
         $budget->setExpirationDate(now() + 30);
@@ -112,6 +132,13 @@ class CreateBudgetController
         return $budget;
     }
 
+    /**
+     * Function to calculate the budget price
+     * @param int $layerThickness
+     * @param BuildingMaterial $buildingMaterial
+     * @param float $areaToCover
+     * @return float
+     */
     private function makeBudgetPriceCalculation(int $layerThickness, BuildingMaterial $buildingMaterial, float $areaToCover): float
     {
         $insulatingMaterialCost = $buildingMaterial->getUnitPriceByCoverLayerThickness($layerThickness);
@@ -119,7 +146,13 @@ class CreateBudgetController
         return $areaToCover * $insulatingMaterialCost;
     }
 
-    private function makeBudgetBagsQuantityCalculation(float $areaToCover, int $layerThickness, Bag $buildingMaterialBag): float
+    /**
+     * Function to calculate how many bags the customer needs to cover the surface
+     * @param float $areaToCover
+     * @param int $layerThickness
+     * @return float
+     */
+    private function makeBudgetBagsQuantityCalculation(float $areaToCover, int $layerThickness): float
     {
         if ($layerThickness === 100) {
             return $areaToCover / self::BASE_COVERED_AREA_BY_DEFAULT_IN_SQUARE_METERS;

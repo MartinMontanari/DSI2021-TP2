@@ -15,6 +15,8 @@ class CreateBuildingUnderConstructionsTable extends Migration
     {
         Schema::create('building_under_constructions', function (Blueprint $table) {
             $table->id();
+            $table->string('type')->nullable();
+            $table->string('address')->nullable();
             $table->timestamps();
         });
     }

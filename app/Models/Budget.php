@@ -29,7 +29,7 @@ class Budget extends Model
     }
 
     /**
-     * @param int $layer_thickness
+     * @param int $layerThickness
      */
     public function setLayerThickness(int $layerThickness): void
     {

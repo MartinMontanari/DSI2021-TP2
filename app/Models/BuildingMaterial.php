@@ -45,7 +45,7 @@ class BuildingMaterial extends Model
     }
 
     /**
-     * @param int $unitPrice
+     * @param float $unitPrice
      */
     public function setUnitPrice(float $unitPrice): void
     {

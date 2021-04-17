@@ -38,7 +38,7 @@ services:
       - 8080:8080
 
   phpnginx:
-    image: lbanchio/docker-php-nginx:7.3-16.04
+    image: lbanchio/docker-php-nginx
     hostname: dev
     links:
       - redis
