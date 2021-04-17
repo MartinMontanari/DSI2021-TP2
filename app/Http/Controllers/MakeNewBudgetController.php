@@ -7,42 +7,65 @@ use App\Models\Budget;
 use App\Models\BuildingMaterial;
 use App\Models\Customer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MakeNewBudgetController extends Controller
 {
-
     public function __invoke(Request $request)
     {
 
-        $customerId = $request->input('customerId');
-
-        if (is_null($customerId)) {
-            throw new \InvalidArgumentException('El cliente ingresado es incorrecto.', 400);
-        }
         try {
-            $customer = $this->findCustomerByIdOrFail($customerId);
-
+            $this->requestAdapter($request);
+            $customerId = $request->input('customerId');
             $layerThickness = $request->input('layerThickness');
-            $materialId = $request->input('materialId');
-
-            if(is_null($materialId)){
-                throw new \InvalidArgumentException('El material de construcción ingresado es incorrecto.', 400);
-            }
-
-            $buildingMaterialBag = $this->findMaterialBagByBuildingMaterialIdOrFail($materialId);
-
-
-            $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterialBag);
-
+            $insulatingMaterialId = $request->input('insulatingMaterialId');
+            $areaToCover = $request->input('areaToCover');
         } catch (\InvalidArgumentException $error) {
             return redirect()->back()->withErrors($error->getMessage());
         }
+
+        try {
+            $customer = $this->findCustomerByIdOrFail($customerId);
+            $buildingMaterialBag = $this->findBagByBuildingMaterialIdOrFail($insulatingMaterialId);
+            $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterialBag, $areaToCover);
+
+        } catch (\RuntimeException $error) {
+            return redirect()->back()->withErrors($error->getMessage());
+        }
+
+        //        TODO terminar el return view para ver los resultados
     }
 
-    /**
-     * @param int $customerId
-     * @return Customer|null
-     */
+    private function requestAdapter(Request $request)
+    {
+        $validate = Validator::make($request->all(), self::RULES, self::MESSAGES);
+
+        if ($validate->fails()) {
+            throw new \InvalidArgumentException($validate->errors()->getMessages());
+        }
+    }
+
+    private const RULES = [
+        'customerId' => 'bail|required|min:1',
+        'insulatingMaterialId' => 'bail|required|min:1',
+        'layerThickness' => 'bail|required|numeric|min:50|max:200',
+        'areaToCover' => 'bail|required|numeric|min:4.5'
+    ];
+
+    private const MESSAGES = [
+        'customerId.required' => 'Debe ingresar el cliente.',
+        'customerId.min' => 'El cliente ingresado no es correcto.',
+        'insulatingMaterialId.required' => 'Debe ingresar el material aislante.',
+        'insulatingMaterialId.min' => 'El material aislante ingresado no es correcto.',
+        'layerThickness.required' => 'Debe ingresar el espesor de la capa a aplicar.',
+        'layerThickness.numeric' => 'El espesor de la capa a aplicar debe ser un número.',
+        'layerThickness.min' => 'Debe ingresar una capa de 50mm como mínimo.',
+        'layerThickness.max' => 'Debe ingresar una capa de 200mm como máximo.',
+        'areaToCover.required' => 'Debe ingresar el área a cubrir en metros cuadrados.',
+        'areaToCover.numeric' => 'El área a cubrir ingresada es incorrecta.',
+        'areaToCover.min' => 'El área a cubrir ingresada es incorrecta, la superficie debe ser de 4,5 metros cuadrados como mínimo.'
+    ];
+
     private function findCustomerByIdOrFail(int $customerId): ?Customer
     {
         $query = Customer::query()->where('id', '=', $customerId)->get()->first();
@@ -54,11 +77,7 @@ class MakeNewBudgetController extends Controller
         return $query;
     }
 
-    /**
-     * @param int $materialId
-     * @return BuildingMaterial|null
-     */
-    private function findMaterialBagByBuildingMaterialIdOrFail(int $materialId): ?Bag
+    private function findBagByBuildingMaterialIdOrFail(int $materialId): ?Bag
     {
         $query = Bag::query()->where('building_material_id', '=', $materialId)->get()->first();
 
@@ -69,20 +88,32 @@ class MakeNewBudgetController extends Controller
         return $query;
     }
 
-    /**
-     * @param Customer $customer
-     * @param int $layerThickness
-     * @param Bag $buildingMaterialBag
-     * @return Budget
-     */
-    private function createBudget(Customer $customer, int $layerThickness, Bag $buildingMaterialBag): Budget
+    private function createBudget(Customer $customer, int $layerThickness, Bag $buildingMaterialBag, float $areaToCover): Budget
     {
         $budget = new Budget();
 
         $budget->setCustomer($customer);
         $budget->setLayerThickness($layerThickness);
         $budget->setBag($buildingMaterialBag);
-        $budget->set
-        //TODO terminar ésto.
+
+        $budgetPrice = $this->makeBudgetPriceCalculation($layerThickness, $buildingMaterialBag->getBuildingMaterial(), $areaToCover);
+
+        $budget->setPrice($budgetPrice);
+
+        $budgetBagsQuantity = $this->makeBudgetBagsQuantityCalculation( $layerThickness , $buildingMaterialBag);
     }
+
+    private function makeBudgetPriceCalculation(int $layerThickness, BuildingMaterial $buildingMaterial, float $areaToCover): float
+    {
+        $insulatingMaterialCost = $buildingMaterial->getUnitPriceByCoverLayerThickness($layerThickness);
+
+        return $areaToCover * $insulatingMaterialCost;
+    }
+
+    private function makeBudgetBagsQuantityCalculation(int $layerThickness, Bag $buildingMaterialBag) : int
+    {
+
+
+    }
+    //TODO terminar ésto.
 }

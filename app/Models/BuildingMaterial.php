@@ -53,9 +53,33 @@ class BuildingMaterial extends Model
     }
 
     /**
+     * @param int $layerThickness
+     * @return float
+     */
+    public function getUnitPriceByCoverLayerThickness(int $layerThickness): float
+    {
+        switch ($layerThickness) {
+            case 50:
+                return $insulatingMaterialCost = 53.60;
+            case 70:
+                return $insulatingMaterialCost = 87.00;
+            case 100:
+                return $insulatingMaterialCost = 117.49;
+            case 120:
+                return $insulatingMaterialCost = 128.48;
+            case 160:
+                return $insulatingMaterialCost = 143.05;
+            case 200:
+                return $insulatingMaterialCost = 180.79;
+            default:
+                return 117.49;
+        }
+    }
+
+    /**
      * @return HasOne
      */
-    public function bag() : HasOne
+    public function bag(): HasOne
     {
         return $this->hasOne(Bag::class);
     }
