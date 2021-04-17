@@ -13,4 +13,4 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/',[\App\Http\Controllers\MakeNewBudgetController::class, '__invoke']);
+Route::get('/',[\App\Http\Controllers\CreateBudgetController::class, '__invoke']);

@@ -9,8 +9,11 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class MakeNewBudgetController extends Controller
+class CreateBudgetController
 {
+    private const BASE_COVERED_AREA_BY_DEFAULT_IN_SQUARE_METERS = 4.5;
+    private const BASE_THICKNESS_LAYER_BY_DEFAULT_IN_MILLIMETERS = 100;
+
     public function __invoke(Request $request)
     {
 
@@ -29,11 +32,11 @@ class MakeNewBudgetController extends Controller
             $buildingMaterialBag = $this->findBagByBuildingMaterialIdOrFail($insulatingMaterialId);
             $createdBudget = $this->createBudget($customer, $layerThickness, $buildingMaterialBag, $areaToCover);
 
+            return view('budget.index',['createdBudget' => $createdBudget]);
+
         } catch (\RuntimeException $error) {
             return redirect()->back()->withErrors($error->getMessage());
         }
-
-        //        TODO terminar el return view para ver los resultados
     }
 
     private function requestAdapter(Request $request)
@@ -97,10 +100,16 @@ class MakeNewBudgetController extends Controller
         $budget->setBag($buildingMaterialBag);
 
         $budgetPrice = $this->makeBudgetPriceCalculation($layerThickness, $buildingMaterialBag->getBuildingMaterial(), $areaToCover);
-
         $budget->setPrice($budgetPrice);
 
-        $budgetBagsQuantity = $this->makeBudgetBagsQuantityCalculation( $layerThickness , $buildingMaterialBag);
+        $budgetBagsQuantity = $this->makeBudgetBagsQuantityCalculation($areaToCover, $layerThickness, $buildingMaterialBag);
+        $budget->setTotallyBagsQuantity($budgetBagsQuantity);
+
+        $budget->setExpirationDate(now() + 30);
+
+        $budget->save();
+
+        return $budget;
     }
 
     private function makeBudgetPriceCalculation(int $layerThickness, BuildingMaterial $buildingMaterial, float $areaToCover): float
@@ -110,10 +119,11 @@ class MakeNewBudgetController extends Controller
         return $areaToCover * $insulatingMaterialCost;
     }
 
-    private function makeBudgetBagsQuantityCalculation(int $layerThickness, Bag $buildingMaterialBag) : int
+    private function makeBudgetBagsQuantityCalculation(float $areaToCover, int $layerThickness, Bag $buildingMaterialBag): float
     {
-
-
+        if ($layerThickness === 100) {
+            return $areaToCover / self::BASE_COVERED_AREA_BY_DEFAULT_IN_SQUARE_METERS;
+        }
+        return ($areaToCover * $layerThickness) / (self::BASE_COVERED_AREA_BY_DEFAULT_IN_SQUARE_METERS * self::BASE_THICKNESS_LAYER_BY_DEFAULT_IN_MILLIMETERS);
     }
-    //TODO terminar ésto.
 }
