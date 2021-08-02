@@ -15,3 +15,4 @@ yarn-error.log
 /docker/mysql-data
 /docker/redis-data
 ./idea
+composer.phar
