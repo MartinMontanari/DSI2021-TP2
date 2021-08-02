@@ -13,4 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/',[\App\Http\Controllers\RegisterParticipantsAndInscriptionsController::class,'__invoke']);
+Route::get('/',function(){
+    return 'hola';
+});
